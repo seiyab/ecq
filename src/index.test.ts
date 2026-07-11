@@ -45,6 +45,18 @@ describe("client()", () => {
 		expect(await q.queryFn()).toEqual(3);
 	});
 
+	test("calls methods with the client object as this", async () => {
+		const clientObject = {
+			base: 10,
+			add(this: { base: number }, value: number) {
+				return this.base + value;
+			},
+		};
+		const api = client(clientObject);
+
+		expect(await api.add(5).queryFn()).toEqual(15);
+	});
+
 	test("should return identical queryKey for same method input", () => {
 		const api = client({
 			add,

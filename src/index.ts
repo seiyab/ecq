@@ -44,7 +44,7 @@ function client<ClientObject extends Record<string, unknown>>(
 			if (typeof method !== "function") return [];
 			const createQuery = (...args: unknown[]): Query<unknown> => ({
 				queryKey: [queryKeyPrefix, methodName, args],
-				queryFn: async () => method(...args),
+				queryFn: async () => method.apply(clientObject, args),
 			});
 			return [[methodName, createQuery]];
 		}),
