@@ -7,10 +7,8 @@ const idRegistry = newIDRegistry();
 
 type FunctionQuery<Func extends (...args: never[]) => unknown> = (
 	...args: Parameters<Func>
-) => Query<ReturnType<Func>>;
-export function func<Func extends (...args: never[]) => unknown>(
-	f: Func,
-): FunctionQuery<Func> {
+) => Query<Awaited<ReturnType<Func>>>;
+export function func<Func extends (...args: never[]) => unknown>(f: Func): FunctionQuery<Func> {
 	const name = f.name || "anonymous";
 	const id = idRegistry.issue(f);
 	const key = `ecq.func.${name}.${id}`;
@@ -22,10 +20,8 @@ export function func<Func extends (...args: never[]) => unknown>(
 }
 
 type ClientObjectQuery<ClientObject extends Record<string, unknown>> = {
-	[K in keyof ClientObject]: ClientObject[K] extends (
-		...args: infer P
-	) => infer O
-		? (...args: P) => Query<O>
+	[K in keyof ClientObject]: ClientObject[K] extends (...args: infer P) => infer O
+		? (...args: P) => Query<Awaited<O>>
 		: unknown;
 };
 export function client<ClientObject extends Record<string, unknown>>(
@@ -77,5 +73,3 @@ function newCounter() {
 		return current++;
 	}
 }
-
-type EnsurePromise<T> = T extends Promise<unknown> ? T : Promise<T>;
