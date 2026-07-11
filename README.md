@@ -7,7 +7,7 @@ ecq turns functions and client objects into type-safe TanStack Query option fact
 ## Installation
 
 ```sh
-npm install ecq @tanstack/react-query
+npm install @seiyab/ecq @tanstack/react-query
 ```
 
 ecq produces standard TanStack Query options and works with every TanStack Query adapter. This guide uses React.
