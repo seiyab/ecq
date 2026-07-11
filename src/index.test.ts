@@ -1,4 +1,5 @@
 import { describe, test, expect } from "vitest";
+import { QueryClient } from "@tanstack/query-core";
 import { client, func } from ".";
 
 describe("func()", () => {
@@ -79,6 +80,30 @@ describe("client()", () => {
 		});
 		expect("add" in api).toBe(true);
 		expect("version" in api).toBe(false);
+	});
+});
+
+describe("TanStack Query Core integration", () => {
+	test("fetches a func() query with QueryClient", async () => {
+		const queryClient = new QueryClient();
+		const addQuery = func(add);
+
+		const result = await queryClient.fetchQuery(addQuery(1, 2));
+
+		expect(result).toEqual(3);
+		expect(queryClient.getQueryData(addQuery(1, 2).queryKey)).toEqual(3);
+	});
+
+	test("fetches a client() method query with QueryClient", async () => {
+		const queryClient = new QueryClient();
+		const api = client({
+			add,
+		});
+
+		const result = await queryClient.fetchQuery(api.add(1, 2));
+
+		expect(result).toEqual(3);
+		expect(queryClient.getQueryData(api.add(1, 2).queryKey)).toEqual(3);
 	});
 });
 
