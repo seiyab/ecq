@@ -5,11 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "check": "oxfmt --check && oxlint",
+    "check:fix": "oxfmt && oxlint --fix",
+	"test": "vitest --run",
+    "build": "tsc && vite build"
   },
   "devDependencies": {
+    "@tanstack/query-core": "^5.101.2",
+    "oxfmt": "^0.58.0",
+    "oxlint": "^1.73.0",
     "typescript": "~6.0.2",
-    "vite": "^8.1.1"
+    "vite": "^8.1.1",
+    "vitest": "^4.1.10"
   }
 }
