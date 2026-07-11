@@ -1,22 +1,22 @@
-# ecquery
+# ecq
 
 **Easy, Consistent Queries** for [TanStack Query](https://tanstack.com/query).
 
-ecquery turns functions and client objects into type-safe TanStack Query option factories. It generates consistent query keys from the source, method, and arguments, so you can define a query once and use it throughout your application.
+ecq turns functions and client objects into type-safe TanStack Query option factories. It generates consistent query keys from the source, method, and arguments, so you can define a query once and use it throughout your application.
 
 ## Installation
 
 ```sh
-npm install ecquery @tanstack/react-query
+npm install ecq @tanstack/react-query
 ```
 
-ecquery produces standard TanStack Query options and works with every TanStack Query adapter. This guide uses React.
+ecq produces standard TanStack Query options and works with every TanStack Query adapter. This guide uses React.
 
 ## Create a query from a function
 
 ```tsx
 import { useQuery } from "@tanstack/react-query";
-import { ecq } from "ecquery";
+import { ecq } from "ecq";
 
 async function getUser(id: string) {
 	const response = await fetch(`/api/users/${id}`);
@@ -54,7 +54,7 @@ Use `ecq.client` to turn the methods of an existing client into query factories.
 ```tsx
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { ecq } from "ecquery";
+import { ecq } from "ecq";
 
 type User = { id: string; name: string };
 
@@ -73,7 +73,7 @@ export function User({ id }: { id: string }) {
 ```ts
 import { Client } from "@elastic/elasticsearch";
 import { QueryClient } from "@tanstack/query-core";
-import { ecq } from "ecquery";
+import { ecq } from "ecq";
 
 const client = new Client({ node: "http://localhost:9200" });
 const query = ecq.client(client);
@@ -92,7 +92,7 @@ const results = await queryClient.fetchQuery(
 ```ts
 import { promises as fs } from "node:fs";
 import { QueryClient } from "@tanstack/query-core";
-import { ecq } from "ecquery";
+import { ecq } from "ecq";
 
 const files = ecq.client(fs);
 const queryClient = new QueryClient();
@@ -100,7 +100,7 @@ const queryClient = new QueryClient();
 const packageJson = await queryClient.fetchQuery(files.readFile("package.json", "utf8"));
 ```
 
-Axios and Elasticsearch are optional examples; ecquery does not depend on them. Function properties become query factories, while non-function properties are omitted.
+Axios and Elasticsearch are optional examples; ecq does not depend on them. Function properties become query factories, while non-function properties are omitted.
 
 Only use read methods as queries. Send writes and other side effects through TanStack Query mutations instead.
 
