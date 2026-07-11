@@ -1,6 +1,8 @@
 import { describe, test, expect } from "vitest";
 import { QueryClient } from "@tanstack/query-core";
-import { client, query } from ".";
+import { ecq } from ".";
+
+const { query, client } = ecq;
 
 describe("query()", () => {
 	test("test", async () => {

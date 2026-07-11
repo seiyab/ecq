@@ -8,7 +8,7 @@ const querySourceIds = createIdRegistry();
 type FunctionQueryFactory<Func extends (...args: never[]) => unknown> = (
 	...args: Parameters<Func>
 ) => Query<Awaited<ReturnType<Func>>>;
-export function query<Func extends (...args: never[]) => unknown>(
+function query<Func extends (...args: never[]) => unknown>(
 	fn: Func,
 ): FunctionQueryFactory<Func> {
 	const functionName = fn.name || "anonymous";
@@ -22,13 +22,15 @@ export function query<Func extends (...args: never[]) => unknown>(
 }
 
 type ClientQueryFactories<ClientObject extends Record<string, unknown>> = {
-	[K in keyof ClientObject as ClientObject[K] extends (...args: never[]) => unknown
+	[K in keyof ClientObject as ClientObject[K] extends (
+		...args: never[]
+	) => unknown
 		? K
 		: never]: ClientObject[K] extends (...args: infer P) => infer O
 		? (...args: P) => Query<Awaited<O>>
 		: never;
 };
-export function client<ClientObject extends Record<string, unknown>>(
+function client<ClientObject extends Record<string, unknown>>(
 	clientObject: ClientObject,
 ): ClientQueryFactories<ClientObject> {
 	let objectName = "object";
@@ -54,6 +56,8 @@ export function client<ClientObject extends Record<string, unknown>>(
 
 	return queryFactories;
 }
+
+export const ecq = { query, client };
 
 function createIdRegistry() {
 	const registry = new WeakMap<object, number>();
