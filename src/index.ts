@@ -3,16 +3,16 @@ type Query<out T> = {
 	queryFn: () => Promise<T>;
 };
 
-const registry = newRegistry();
+const idRegistry = newIDRegistry();
 
 type FunctionQuery<Func extends (...args: never[]) => unknown> = (
 	...args: Parameters<Func>
-) => Query<EnsurePromise<ReturnType<Func>>>;
+) => Query<ReturnType<Func>>;
 export function func<Func extends (...args: never[]) => unknown>(
 	f: Func,
 ): FunctionQuery<Func> {
 	const name = f.name || "anonymous";
-	const id = registry.id(f);
+	const id = idRegistry.issue(f);
 	const key = `ecq.func.${name}.${id}`;
 	const query: FunctionQuery<Func> = (...args) => ({
 		queryKey: [key, args],
@@ -21,11 +21,45 @@ export function func<Func extends (...args: never[]) => unknown>(
 	return query;
 }
 
-function newRegistry() {
+type ClientObjectQuery<ClientObject extends Record<string, unknown>> = {
+	[K in keyof ClientObject]: ClientObject[K] extends (
+		...args: infer P
+	) => infer O
+		? (...args: P) => Query<O>
+		: unknown;
+};
+export function client<ClientObject extends Record<string, unknown>>(
+	o: ClientObject,
+): ClientObjectQuery<ClientObject> {
+	let name = "object";
+	const p = o.__prototype__;
+	if (typeof p == "object" && p != null) {
+		if ("name" in p && typeof p.name === "string") {
+			name = p.name;
+		}
+	}
+	const id = idRegistry.issue(o);
+	const keyPrefix = `ecq.obj.${name}.${id}`;
+
+	const queries = Object.fromEntries(
+		Object.entries(o).flatMap(([key, value]) => {
+			if (typeof value !== "function") return [];
+			const query = (...args: unknown[]): Query<unknown> => ({
+				queryKey: [keyPrefix, key, args],
+				queryFn: async () => value(...args),
+			});
+			return [[key, query]];
+		}),
+	) as ClientObjectQuery<ClientObject>;
+
+	return queries;
+}
+
+function newIDRegistry() {
 	const registry = new WeakMap<object, number>();
 	const next = newCounter();
 
-	return { id };
+	return { issue: id };
 
 	function id(x: object) {
 		if (registry.has(x)) return registry.get(x);

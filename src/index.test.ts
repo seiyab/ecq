@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { func } from ".";
+import { client, func } from ".";
 
 describe("func()", () => {
 	test("test", async () => {
@@ -29,6 +29,56 @@ describe("func()", () => {
 		const a = addQuery(1, 2);
 		const b = addQuery2(1, 2);
 		expect(a.queryKey).not.toEqual(b.queryKey);
+	});
+});
+
+describe("client()", () => {
+	test("wraps object functions as queries", async () => {
+		const api = client({
+			add,
+		});
+		const q = api.add(1, 2);
+		expect(q.queryKey).toEqual([expect.anything(), "add", [1, 2]]);
+		expect(await q.queryFn()).toEqual(3);
+	});
+
+	test("should return identical queryKey for same method input", () => {
+		const api = client({
+			add,
+		});
+		const a = api.add(1, 2);
+		const b = api.add(1, 2);
+		expect(a.queryKey).toEqual(b.queryKey);
+	});
+
+	test("should return different queryKey for different method input", () => {
+		const api = client({
+			add,
+		});
+		const a = api.add(1, 2);
+		const b = api.add(1, 3);
+		expect(a.queryKey).not.toEqual(b.queryKey);
+	});
+
+	test("should return different queryKey for different client objects", () => {
+		const api = client({
+			add,
+		});
+		const api2 = client({
+			add,
+		});
+		const a = api.add(1, 2);
+		const b = api2.add(1, 2);
+		expect(a.queryKey).not.toEqual(b.queryKey);
+	});
+
+	test("should omit non-function properties", () => {
+		const api = client({
+			add,
+			version: "1.0.0",
+		});
+		expect("add" in api).toBe(true);
+		expect("version" in api).toBe(false);
 	});
 });
 
