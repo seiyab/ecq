@@ -1,32 +1,32 @@
 import { describe, test, expect } from "vitest";
 import { QueryClient } from "@tanstack/query-core";
-import { client, func } from ".";
+import { client, query } from ".";
 
-describe("func()", () => {
+describe("query()", () => {
 	test("test", async () => {
-		const addQuery = func(add);
+		const addQuery = query(add);
 		const q = addQuery(1, 2);
 		expect(q.queryKey).toEqual([expect.anything(), [1, 2]]);
 		expect(await q.queryFn()).toEqual(3);
 	});
 
 	test("should return identical queryKey for same input", () => {
-		const addQuery = func(add);
+		const addQuery = query(add);
 		const a = addQuery(1, 2);
 		const b = addQuery(1, 2);
 		expect(a.queryKey).toEqual(b.queryKey);
 	});
 
 	test("should return different queryKey for different input", () => {
-		const addQuery = func(add);
+		const addQuery = query(add);
 		const a = addQuery(1, 2);
 		const b = addQuery(1, 3);
 		expect(a.queryKey).not.toEqual(b.queryKey);
 	});
 
 	test("should return different queryKey for different function", () => {
-		const addQuery = func(add);
-		const addQuery2 = func(add2);
+		const addQuery = query(add);
+		const addQuery2 = query(add2);
 		const a = addQuery(1, 2);
 		const b = addQuery2(1, 2);
 		expect(a.queryKey).not.toEqual(b.queryKey);
@@ -84,9 +84,9 @@ describe("client()", () => {
 });
 
 describe("TanStack Query Core integration", () => {
-	test("fetches a func() query with QueryClient", async () => {
+	test("fetches a query() query with QueryClient", async () => {
 		const queryClient = new QueryClient();
-		const addQuery = func(add);
+		const addQuery = query(add);
 
 		const result = await queryClient.fetchQuery(addQuery(1, 2));
 

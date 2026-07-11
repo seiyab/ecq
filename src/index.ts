@@ -8,7 +8,7 @@ const querySourceIds = createIdRegistry();
 type FunctionQueryFactory<Func extends (...args: never[]) => unknown> = (
 	...args: Parameters<Func>
 ) => Query<Awaited<ReturnType<Func>>>;
-export function func<Func extends (...args: never[]) => unknown>(
+export function query<Func extends (...args: never[]) => unknown>(
 	fn: Func,
 ): FunctionQueryFactory<Func> {
 	const functionName = fn.name || "anonymous";
