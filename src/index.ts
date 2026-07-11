@@ -30,10 +30,10 @@ function client<ClientObject extends Record<string, unknown>>(
 	clientObject: ClientObject,
 ): ClientQueryFactories<ClientObject> {
 	let objectName = "object";
-	const prototype = clientObject.__prototype__;
-	if (typeof prototype == "object" && prototype != null) {
-		if ("name" in prototype && typeof prototype.name === "string") {
-			objectName = prototype.name;
+	if ("constructor" in clientObject && typeof clientObject.constructor === "function") {
+		const ctr = clientObject.constructor;
+		if (typeof ctr.name === "string") {
+			objectName = ctr.name;
 		}
 	}
 	const sourceId = querySourceIds.issue(clientObject);
