@@ -19,14 +19,14 @@ function query<Func extends (...args: never[]) => unknown>(fn: Func): FunctionQu
 	return createQuery;
 }
 
-type ClientQueryFactories<ClientObject extends Record<string, unknown>> = {
+type ClientQueryFactories<ClientObject extends object> = {
 	[K in keyof ClientObject as ClientObject[K] extends (...args: never[]) => unknown
 		? K
 		: never]: ClientObject[K] extends (...args: infer P) => infer O
 		? (...args: P) => Query<Awaited<O>>
 		: never;
 };
-function client<ClientObject extends Record<string, unknown>>(
+function client<ClientObject extends object>(
 	clientObject: ClientObject,
 ): ClientQueryFactories<ClientObject> {
 	let objectName = "object";
@@ -40,17 +40,38 @@ function client<ClientObject extends Record<string, unknown>>(
 	const queryKeyPrefix = `ecq.obj.${objectName}.${sourceId}`;
 
 	const queryFactories = Object.fromEntries(
-		Object.entries(clientObject).flatMap(([methodName, method]) => {
-			if (typeof method !== "function") return [];
+		getProperties(clientObject).flatMap(([methodName, value]) => {
+			if (typeof value !== "function") return [];
 			const createQuery = (...args: unknown[]): Query<unknown> => ({
 				queryKey: [queryKeyPrefix, methodName, args],
-				queryFn: async () => method.apply(clientObject, args),
+				queryFn: async () => value.apply(clientObject, args),
 			});
 			return [[methodName, createQuery]];
 		}),
 	) as ClientQueryFactories<ClientObject>;
 
 	return queryFactories;
+}
+
+function getProperties(object: object): [string, unknown][] {
+	const properties: [string, unknown][] = [];
+	const visited = new Set<string>();
+	let current: object | null = object;
+
+	while (current !== null && current !== Object.prototype) {
+		for (const propertyName of Object.getOwnPropertyNames(current)) {
+			if (visited.has(propertyName)) continue;
+			visited.add(propertyName);
+
+			const descriptor = Object.getOwnPropertyDescriptor(current, propertyName);
+			if (descriptor !== undefined && "value" in descriptor) {
+				properties.push([propertyName, descriptor.value]);
+			}
+		}
+		current = Object.getPrototypeOf(current);
+	}
+
+	return properties;
 }
 
 export const ecq = { query, client };

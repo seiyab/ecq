@@ -95,6 +95,47 @@ describe("client()", () => {
 		expect("add" in api).toBe(true);
 		expect("version" in api).toBe(false);
 	});
+
+	test("wraps class instance methods as queries", async () => {
+		class Calculator {
+			private base: number;
+
+			constructor(base: number) {
+				this.base = base;
+			}
+
+			add(value: number) {
+				return this.base + value;
+			}
+		}
+
+		const api = client(new Calculator(10));
+
+		expect(await api.add(5).queryFn()).toEqual(15);
+	});
+
+	test("wraps inherited methods and respects overrides", async () => {
+		class Calculator {
+			calculate(value: number) {
+				return value;
+			}
+
+			double(value: number) {
+				return value * 2;
+			}
+		}
+
+		class OffsetCalculator extends Calculator {
+			calculate(value: number) {
+				return value + 1;
+			}
+		}
+
+		const api = client(new OffsetCalculator());
+
+		expect(await api.calculate(2).queryFn()).toEqual(3);
+		expect(await api.double(2).queryFn()).toEqual(4);
+	});
 });
 
 describe("TanStack Query Core integration", () => {
