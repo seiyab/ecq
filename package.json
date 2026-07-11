@@ -1,14 +1,13 @@
 {
 	"name": "ecq",
 	"version": "0.0.0",
-	"private": true,
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"check": "oxfmt --check && oxlint",
+		"check": "oxfmt --check && oxlint && tsc",
 		"check:fix": "oxfmt && oxlint --fix",
 		"test": "vitest --run",
-		"build": "tsc && vite build"
+		"build": "vite build && tsc -p ./tsconfig.build.json"
 	},
 	"devDependencies": {
 		"@tanstack/query-core": "^5.101.2",
@@ -17,5 +16,14 @@
 		"typescript": "~6.0.2",
 		"vite": "^8.1.1",
 		"vitest": "^4.1.10"
+	},
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"files": ["dist"],
+	"export": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
 	}
 }
