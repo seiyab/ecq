@@ -4,6 +4,7 @@ type Query<out T> = {
 };
 
 const querySourceIds = createIdRegistry();
+const queryKeyPrefixes = new WeakMap<object, unknown[]>();
 
 type FunctionQueryFactory<Func extends (...args: never[]) => unknown> = (
 	...args: Parameters<Func>
@@ -16,6 +17,7 @@ function query<Func extends (...args: never[]) => unknown>(fn: Func): FunctionQu
 		queryKey: [queryKeyPrefix, args],
 		queryFn: async () => fn(...args) as any,
 	});
+	queryKeyPrefixes.set(createQuery, [queryKeyPrefix]);
 	return createQuery;
 }
 
@@ -46,11 +48,27 @@ function client<ClientObject extends object>(
 				queryKey: [queryKeyPrefix, methodName, args],
 				queryFn: async () => value.apply(clientObject, args),
 			});
+			queryKeyPrefixes.set(createQuery, [queryKeyPrefix, methodName]);
 			return [[methodName, createQuery]];
 		}),
 	) as ClientQueryFactories<ClientObject>;
 
+	queryKeyPrefixes.set(queryFactories, [queryKeyPrefix]);
 	return queryFactories;
+}
+
+function keyOf<Func extends (...args: never[]) => unknown>(
+	queryFactory: FunctionQueryFactory<Func>,
+): unknown[];
+function keyOf<ClientObject extends object>(
+	queryClientObject: ClientQueryFactories<ClientObject>,
+): unknown[];
+function keyOf(queryFactoryOrClient: object): unknown[] {
+	const key = queryKeyPrefixes.get(queryFactoryOrClient);
+	if (key === undefined) {
+		throw new TypeError("keyOf() expects a value returned by ecq.query() or ecq.client()");
+	}
+	return key;
 }
 
 function getProperties(object: object): [string, unknown][] {
@@ -74,7 +92,7 @@ function getProperties(object: object): [string, unknown][] {
 	return properties;
 }
 
-export const ecq = { query, client };
+export const ecq = { query, client, keyOf };
 
 function createIdRegistry() {
 	const registry = new WeakMap<object, number>();

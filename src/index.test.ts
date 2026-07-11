@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest";
 import { QueryClient } from "@tanstack/query-core";
 import { ecq } from ".";
 
-const { query, client } = ecq;
+const { query, client, keyOf } = ecq;
 
 describe("query()", () => {
 	test("test", async () => {
@@ -159,6 +159,31 @@ describe("TanStack Query Core integration", () => {
 
 		expect(result).toEqual(3);
 		expect(queryClient.getQueryData(api.add(1, 2).queryKey)).toEqual(3);
+	});
+});
+
+describe("keyOf()", () => {
+	test("returns the key prefix of a function query", () => {
+		const addQuery = query(add);
+
+		expect(addQuery(1, 2).queryKey).toEqual([...keyOf(addQuery), [1, 2]]);
+	});
+
+	test("returns the key prefix of all methods in a query client", () => {
+		const api = client({ add, add2 });
+
+		expect(api.add(1, 2).queryKey).toEqual([...keyOf(api), "add", [1, 2]]);
+		expect(api.add2(1, 2).queryKey).toEqual([...keyOf(api), "add2", [1, 2]]);
+	});
+
+	test("returns the key prefix of a specific query client method", () => {
+		const api = client({ add });
+
+		expect(api.add(1, 2).queryKey).toEqual([...keyOf(api.add), [1, 2]]);
+	});
+
+	test("rejects values not created by ecq", () => {
+		expect(() => keyOf({})).toThrow(TypeError);
 	});
 });
 
