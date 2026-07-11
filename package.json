@@ -1,7 +1,12 @@
 {
 	"name": "ecq",
 	"version": "0.0.1",
+	"files": [
+		"dist"
+	],
 	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
 	"scripts": {
 		"dev": "vite",
 		"check": "oxfmt --check && oxlint && tsc",
@@ -17,9 +22,6 @@
 		"vite": "^8.1.1",
 		"vitest": "^4.1.10"
 	},
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"files": ["dist"],
 	"export": {
 		".": {
 			"types": "./dist/index.d.ts",

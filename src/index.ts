@@ -8,9 +8,7 @@ const querySourceIds = createIdRegistry();
 type FunctionQueryFactory<Func extends (...args: never[]) => unknown> = (
 	...args: Parameters<Func>
 ) => Query<Awaited<ReturnType<Func>>>;
-function query<Func extends (...args: never[]) => unknown>(
-	fn: Func,
-): FunctionQueryFactory<Func> {
+function query<Func extends (...args: never[]) => unknown>(fn: Func): FunctionQueryFactory<Func> {
 	const functionName = fn.name || "anonymous";
 	const sourceId = querySourceIds.issue(fn);
 	const queryKeyPrefix = `ecq.func.${functionName}.${sourceId}`;
@@ -22,9 +20,7 @@ function query<Func extends (...args: never[]) => unknown>(
 }
 
 type ClientQueryFactories<ClientObject extends Record<string, unknown>> = {
-	[K in keyof ClientObject as ClientObject[K] extends (
-		...args: never[]
-	) => unknown
+	[K in keyof ClientObject as ClientObject[K] extends (...args: never[]) => unknown
 		? K
 		: never]: ClientObject[K] extends (...args: infer P) => infer O
 		? (...args: P) => Query<Awaited<O>>
