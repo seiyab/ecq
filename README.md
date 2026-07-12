@@ -16,7 +16,7 @@ ecq produces standard TanStack Query options and works with every TanStack Query
 
 ```tsx
 import { useQuery } from "@tanstack/react-query";
-import { ecq } from "ecq";
+import { ecq } from "@seiyab/ecq";
 
 async function getUser(id: string) {
 	const response = await fetch(`/api/users/${id}`);
@@ -54,7 +54,7 @@ Use `ecq.client` to turn the methods of an existing client into query factories.
 ```tsx
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { ecq } from "ecq";
+import { ecq } from "@seiyab/ecq";
 
 type User = { id: string; name: string };
 
@@ -73,7 +73,7 @@ export function User({ id }: { id: string }) {
 ```ts
 import { Client } from "@elastic/elasticsearch";
 import { QueryClient } from "@tanstack/query-core";
-import { ecq } from "ecq";
+import { ecq } from "@seiyab/ecq";
 
 const client = new Client({ node: "http://localhost:9200" });
 const query = ecq.client(client);
@@ -92,7 +92,7 @@ const results = await queryClient.fetchQuery(
 ```ts
 import { promises as fs } from "node:fs";
 import { QueryClient } from "@tanstack/query-core";
-import { ecq } from "ecq";
+import { ecq } from "@seiyab/ecq";
 
 const files = ecq.client(fs);
 const queryClient = new QueryClient();
