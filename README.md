@@ -18,20 +18,20 @@ ecq produces standard TanStack Query options and works with every TanStack Query
 import { useQuery } from "@tanstack/react-query";
 import { ecq } from "@seiyab/ecq";
 
-async function getUser(id: string) {
-	const response = await fetch(`/api/users/${id}`);
+async function getProduct(id: string) {
+	const response = await fetch(`/api/products/${id}`);
 
-	if (!response.ok) throw new Error("Failed to fetch user");
+	if (!response.ok) throw new Error("Failed to fetch product");
 
 	return response.json() as Promise<{ id: string; name: string }>;
 }
 
-const userQuery = ecq.query(getUser);
+const productQuery = ecq.query(getProduct);
 
-export function User({ id }: { id: string }) {
-	const { data: user } = useQuery(userQuery(id));
+export function Product({ id }: { id: string }) {
+	const { data: product } = useQuery(productQuery(id));
 
-	return <p>{user?.name}</p>;
+	return <p>{product?.name}</p>;
 }
 ```
 
@@ -40,9 +40,9 @@ Arguments become part of the query key. The same function and arguments produce 
 The result works anywhere TanStack Query accepts query options:
 
 ```ts
-queryClient.fetchQuery(userQuery("42"));
-queryClient.prefetchQuery(userQuery("42"));
-queryClient.getQueryData(userQuery("42").queryKey);
+queryClient.fetchQuery(productQuery("42"));
+queryClient.prefetchQuery(productQuery("42"));
+queryClient.getQueryData(productQuery("42").queryKey);
 ```
 
 ## Create queries from a client
@@ -110,9 +110,9 @@ Use `ecq.keyOf` to invalidate every query created by a query factory, regardless
 its arguments:
 
 ```ts
-const userQuery = ecq.query(getUser);
+const productQuery = ecq.query(getProduct);
 
-await queryClient.invalidateQueries({ queryKey: ecq.keyOf(userQuery) });
+await queryClient.invalidateQueries({ queryKey: ecq.keyOf(productQuery) });
 ```
 
 For an `ecq.client` result, pass the whole query client object to invalidate every
