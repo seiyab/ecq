@@ -3,16 +3,21 @@ type Query<out T> = {
 	queryFn: () => Promise<T>;
 };
 
+type KeyOptions = { key: string };
+
 const querySourceIds = createIdRegistry();
 const queryKeyPrefixes = new WeakMap<object, unknown[]>();
 
 type FunctionQueryFactory<Func extends (...args: never[]) => unknown> = (
 	...args: Parameters<Func>
 ) => Query<Awaited<ReturnType<Func>>>;
-function query<Func extends (...args: never[]) => unknown>(fn: Func): FunctionQueryFactory<Func> {
-	const functionName = fn.name || "anonymous";
-	const sourceId = querySourceIds.issue(fn);
-	const queryKeyPrefix = `ecq.func.${functionName}.${sourceId}`;
+function query<Func extends (...args: never[]) => unknown>(
+	fn: Func,
+	options?: KeyOptions,
+): FunctionQueryFactory<Func> {
+	const queryKeyPrefix = options
+		? `ecq.key.func.${options.key}`
+		: `ecq.func.${fn.name || "anonymous"}.${querySourceIds.issue(fn)}`;
 	const createQuery: FunctionQueryFactory<Func> = (...args) => ({
 		queryKey: [queryKeyPrefix, args],
 		queryFn: async () => fn(...args) as any,
@@ -30,17 +35,9 @@ type ClientQueryFactories<ClientObject extends object> = {
 };
 function client<ClientObject extends object>(
 	clientObject: ClientObject,
+	options?: KeyOptions,
 ): ClientQueryFactories<ClientObject> {
-	let objectName = "object";
-	if ("constructor" in clientObject && typeof clientObject.constructor === "function") {
-		const ctr = clientObject.constructor;
-		if (typeof ctr.name === "string") {
-			objectName = ctr.name;
-		}
-	}
-	const sourceId = querySourceIds.issue(clientObject);
-	const queryKeyPrefix = `ecq.obj.${objectName}.${sourceId}`;
-
+	const queryKeyPrefix = options ? `ecq.key.obj.${options.key}` : getClientKeyPrefix(clientObject);
 	const queryFactories = Object.fromEntries(
 		getProperties(clientObject).flatMap(([methodName, value]) => {
 			if (typeof value !== "function") return [];
@@ -55,6 +52,17 @@ function client<ClientObject extends object>(
 
 	queryKeyPrefixes.set(queryFactories, [queryKeyPrefix]);
 	return queryFactories;
+}
+
+function getClientKeyPrefix(clientObject: object): string {
+	let objectName = "object";
+	if ("constructor" in clientObject && typeof clientObject.constructor === "function") {
+		const ctr = clientObject.constructor;
+		if (typeof ctr.name === "string") {
+			objectName = ctr.name;
+		}
+	}
+	return `ecq.obj.${objectName}.${querySourceIds.issue(clientObject)}`;
 }
 
 function keyOf<Func extends (...args: never[]) => unknown>(

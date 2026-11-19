@@ -128,13 +128,30 @@ await queryClient.invalidateQueries({ queryKey: ecq.keyOf(users) });
 await queryClient.invalidateQueries({ queryKey: ecq.keyOf(users.getUser) });
 ```
 
+## Share query keys across server and browser
+
+Pass a stable string key when server-prefetched data will be hydrated in the browser:
+
+```ts
+const productQuery = ecq.query(getProduct, { key: "products.detail" });
+const catalogQueries = ecq.client({ getProduct, listProducts }, { key: "catalog" });
+```
+
+Use the same key and equivalent serializable arguments on both sides. For clients,
+the method name is also part of the query key. Use distinct keys for distinct
+function queries and distinct namespaces for clients that return different data.
+`ecq.keyOf` works with keyed factories, clients, and their methods.
+
+TanStack Query handles prefetching, dehydration, and hydration. If you omit the
+option, ECQ derives the key from the source's identity within the current runtime.
+
 ## API
 
-### `ecq.query(fn)`
+### `ecq.query(fn, { key }?)`
 
 Creates a query factory with the same parameters as `fn`. Calling it returns a `queryKey` and an async `queryFn`. Both synchronous and asynchronous functions are supported.
 
-### `ecq.client(object)`
+### `ecq.client(object, { key }?)`
 
 Creates an object containing a query factory for each function property or method in `object`. Each factory preserves the source method's parameter and return types and calls the method with its original client as `this`.
 
