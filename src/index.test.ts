@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { QueryClient } from "@tanstack/query-core";
+import { dehydrate, hydrate, QueryClient } from "@tanstack/query-core";
 import { ecq } from ".";
 
 const { query, client, keyOf } = ecq;
@@ -139,6 +139,25 @@ describe("client()", () => {
 });
 
 describe("TanStack Query Core integration", () => {
+	test("hydrates keyed functions and methods from distinct sources", async () => {
+		const server = new QueryClient();
+		const browser = new QueryClient();
+		const serverQuery = query(add, { key: "calculator" });
+		const browserQuery = query(add2, { key: "calculator" });
+		const serverApi = client({ add }, { key: "calculator" });
+		const browserApi = client({ add: add2 }, { key: "calculator" });
+
+		await server.fetchQuery(serverQuery(1, 2));
+		await server.fetchQuery(serverApi.add(1, 2));
+		hydrate(browser, JSON.parse(JSON.stringify(dehydrate(server))));
+
+		expect(browser.getQueryData(browserQuery(1, 2).queryKey)).toBe(3);
+		expect(browser.getQueryData(browserApi.add(1, 2).queryKey)).toBe(3);
+		expect(browser.getQueryCache().findAll({ queryKey: keyOf(browserQuery) })).toHaveLength(1);
+		expect(browser.getQueryCache().findAll({ queryKey: keyOf(browserApi) })).toHaveLength(1);
+		expect(browser.getQueryCache().findAll({ queryKey: keyOf(browserApi.add) })).toHaveLength(1);
+	});
+
 	test("fetches a query() query with QueryClient", async () => {
 		const queryClient = new QueryClient();
 		const addQuery = query(add);
